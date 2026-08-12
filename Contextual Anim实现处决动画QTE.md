@@ -1,5 +1,9 @@
 > ContextualAnimationk教程参考：[vorixo.github.io/devtricks/contextual-anim](https://vorixo.github.io/devtricks/contextual-anim/)
 
+# PART 01 处决动画
+
+## 动画序列与蒙太奇
+
 确保动画序列开启Root Motion
 
 设置动画蒙太奇的Montage Section
@@ -12,15 +16,21 @@ Victim
 
 ![1786441042385](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260811180359233-990953543.png)
 
+## 插件
+
 添加插件Motion Warping 和ContextualAnimation
 
 ![1786437004425](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260811180359641-1956571383.png)
 
 ![1786436975098](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260811180400064-568891424.png)
 
+## 角色蓝图Mesh
+
 Player和Enemy都设置Rotation.Z为-90
 
 ![1786439497166](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260811180400274-1776141192.png)
+
+## Contextual Anim
 
 创建DataAsset(Contextual Anim Roles Asset)
 
@@ -45,6 +55,8 @@ Player和Enemy都设置Rotation.Z为-90
 ![1786441203867](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260811180402251-358623294.png)
 
 ![1786441160124](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260811180402698-881139959.png)
+
+## 动画蒙太奇的MotionWarping点
 
 设置MotionWarping点——Notify State
 
@@ -82,7 +94,7 @@ BlendIn设置为Inertialization(带惯性)
 
 ![1786504318216](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260812170958034-1947277522.png)
 
-网上是否有分析微信聊天记录中每个对话自己与对方聊天各自的占比，统计每天发起对话的是谁，以及当天发起对话后双方的回复占比(按条计算)
+## AnimNotifyBlueprint与触发事件
 
 新建AnimNotifyBlueprint
 
@@ -110,10 +122,6 @@ BlendIn设置为Inertialization(带惯性)
 
 ![1786525086526](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260812171000334-1056971255.png)
 
-在Player的角色蓝图中添加交互键触发事件
-
-![1786525167068](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260812171000553-638842482.png)
-
 AnimNotifyBlueprint中的接收函数逻辑如下：
 
 ![1786525352832](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260812171000925-979884728.png)
@@ -122,7 +130,13 @@ AnimNotifyBlueprint中的接收函数逻辑如下：
 
 ![1786525525827](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260812171001138-269715418.png)
 
-效果如下：
+## 交互键
+
+在Player的角色蓝图中添加交互键触发事件
+
+![1786525167068](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260812171000553-638842482.png)
+
+## 最终效果
 
 不按推开交互键
 
@@ -131,3 +145,5 @@ AnimNotifyBlueprint中的接收函数逻辑如下：
 按交互键
 
 ![1786525929243](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260812171321919-361371259.gif)
+
+# PART 02 QTE处决动画
