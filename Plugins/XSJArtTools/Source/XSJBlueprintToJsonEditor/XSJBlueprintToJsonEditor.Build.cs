@@ -25,6 +25,7 @@ public class XSJBlueprintToJsonEditor : ModuleRules
 				"EditorFramework",
 				"EditorStyle",
 				"EditorSubsystem",
+				"EditorWidgets",
 				"GraphEditor",
 				"InputCore",
 				"Json",

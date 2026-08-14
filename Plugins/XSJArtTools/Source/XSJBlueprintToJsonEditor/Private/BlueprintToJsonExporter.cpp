@@ -2,6 +2,7 @@
 
 #include "BlueprintToJsonExporter.h"
 #include "SBlueprintToJsonExportPanel.h"
+#include "SBlueprintToJsonDropPanel.h"
 
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "DesktopPlatformModule.h"
@@ -316,13 +317,57 @@ void FBlueprintToJsonExporter::RegisterMenu()
 	// }
 
 	FToolMenuSection& Section = BlueprintToJsonMenu->FindOrAddSection("BlueprintToJsonTools", LOCTEXT("BlueprintToJsonSection", "Blueprint To JSON"));
+	// 1) 主菜单：打开拖入导出面板（与其它 ToJson 插件一致）。
 	Section.AddMenuEntry(
-		"BlueprintToJson.ExportDirectory",
-		LOCTEXT("ExportDirectoryLabel", "Export Blueprints to JSON..."),
-		LOCTEXT("ExportDirectoryTooltip", "Export every blueprint under a chosen content folder to LLM-readable JSON files."),
+		"BlueprintToJson.OpenDropPanel",
+		LOCTEXT("OpenDropPanelLabel", "Export Blueprints to JSON (drag & drop)..."),
+		LOCTEXT("OpenDropPanelTooltip", "Open a panel where you can drag Blueprint assets in and export them to JSON files."),
 		FSlateIcon(),
-		FUIAction(FExecuteAction::CreateRaw(this, &FBlueprintToJsonExporter::OnExportClicked))
+		FUIAction(FExecuteAction::CreateRaw(this, &FBlueprintToJsonExporter::OpenDropPanel))
 	);
+
+	// 2) 文件夹右键：批量按文件夹导出（旧面板流程）。
+	if (UToolMenu* FolderMenu = UToolMenus::Get()->ExtendMenu("ContentBrowser.FolderContextMenu"))
+	{
+		FToolMenuSection& FolderSection = FolderMenu->FindOrAddSection("XSJArtTools");
+		FolderSection.AddMenuEntry(
+			"BlueprintToJson.ExportFolder",
+			LOCTEXT("ExportFolder", "Export Blueprints to JSON (folder)..."),
+			LOCTEXT("ExportFolderTooltip", "Batch-export every Blueprint asset under the selected content folder to JSON files."),
+			FSlateIcon(FAppStyle::GetAppStyleSetName(), "ClassIcon.Blueprint"),
+			FUIAction(FExecuteAction::CreateRaw(this, &FBlueprintToJsonExporter::OnExportClicked)));
+	}
+
+	// 3) 资产右键：导出当前选中的单个蓝图。
+	if (UToolMenu* AssetMenu = UToolMenus::Get()->ExtendMenu("ContentBrowser.AssetContextMenu"))
+	{
+		FToolMenuSection& AssetSection = AssetMenu->FindOrAddSection("XSJArtTools");
+		AssetSection.AddDynamicEntry("XSJBlueprintToJson.ExportSelected", FNewToolMenuSectionDelegate::CreateLambda(
+			[this](FToolMenuSection& InSection)
+			{
+				TArray<FAssetData> SelectedAssets;
+				GEditor->GetContentBrowserSelections(SelectedAssets);
+
+				bool bHasBP = false;
+				for (const FAssetData& Asset : SelectedAssets)
+				{
+					if (IsAssetClass(Asset))
+					{
+						bHasBP = true;
+						break;
+					}
+				}
+
+				if (!bHasBP) { return; }
+
+				InSection.AddMenuEntry(
+					"XSJBlueprintToJson.ExportSelected",
+					LOCTEXT("ExportSelectedBP", "Export Selected Blueprint to JSON..."),
+					LOCTEXT("ExportSelectedBPTooltip", "Export the currently selected Blueprint asset to a JSON file."),
+					FSlateIcon(FAppStyle::GetAppStyleSetName(), "ClassIcon.Blueprint"),
+					FUIAction(FExecuteAction::CreateRaw(this, &FBlueprintToJsonExporter::OnExportSelectedClicked)));
+			}));
+	}
 
 	bRegisteredMenu = true;
 }
@@ -366,6 +411,23 @@ bool FBlueprintToJsonExporter::PickFolder(const FText& InTitle, const FString& I
 	return true;
 }
 
+bool FBlueprintToJsonExporter::IsAssetClass(const FAssetData& InAsset)
+{
+	// 蓝图资产在内容浏览器中其 AssetClassPath 通常是 UBlueprint 本身。先做最精确的
+	// 类路径比较以覆盖主要路径，避免触发资产加载。
+	if (InAsset.AssetClassPath == UBlueprint::StaticClass()->GetClassPathName())
+	{
+		return true;
+	}
+
+	// 兜底：加载资产的真实类，判断是否为 UBlueprint 的子类，以覆盖蓝图的子类资产。
+	if (UClass* RealClass = InAsset.GetClass())
+	{
+		return RealClass->IsChildOf(UBlueprint::StaticClass());
+	}
+	return false;
+}
+
 void FBlueprintToJsonExporter::OnExportClicked()
 {
 	// 菜单点击：弹出导出面板窗口（而非连续弹两次文件夹对话框）。
@@ -384,6 +446,76 @@ void FBlueprintToJsonExporter::OnExportClicked()
 	Window->SetContent(SNew(SBlueprintToJsonExportPanel));
 
 	FSlateApplication::Get().AddWindow(Window);
+}
+
+void FBlueprintToJsonExporter::OpenDropPanel()
+{
+	// 打开拖入导出面板：把蓝图资产拖入，列表显示，点击导出再选择输出目录。
+	if (!FSlateApplication::IsInitialized())
+	{
+		return;
+	}
+
+	const TSharedRef<SWindow> Window = SNew(SWindow)
+		.Title(LOCTEXT("DropPanelTitle", "Export Blueprints to JSON (drag & drop)"))
+		.ClientSize(FVector2D(560.0f, 420.0f))
+		.SupportsMaximize(false)
+		.SupportsMinimize(false)
+		.SizingRule(ESizingRule::FixedSize);
+
+	Window->SetContent(SNew(SBlueprintToJsonDropPanel));
+
+	FSlateApplication::Get().AddWindow(Window);
+}
+
+void FBlueprintToJsonExporter::OnExportSelectedClicked()
+{
+	// 把当前在内容浏览器中选中的单个蓝图资产导出到所选目录。
+	if (!FSlateApplication::IsInitialized())
+	{
+		return;
+	}
+
+	// 收集当前选中的资产，找到第一个蓝图资产。
+	TArray<FAssetData> SelectedAssets;
+	GEditor->GetContentBrowserSelections(SelectedAssets);
+
+	FAssetData SelectedBlueprint;
+	for (const FAssetData& Asset : SelectedAssets)
+	{
+		if (IsAssetClass(Asset))
+		{
+			SelectedBlueprint = Asset;
+			break;
+		}
+	}
+	if (!SelectedBlueprint.IsValid())
+	{
+		Notify(LOCTEXT("NoBlueprintSelected", "当前没有选中任何蓝图资产。"), true);
+		return;
+	}
+
+	// 选择输出目录。
+	FString OutputDir;
+	const FString DefaultPath = FPaths::ConvertRelativePathToFull(FPaths::ProjectDir());
+	if (!PickFolder(LOCTEXT("PickOutputFolder", "选择导出目录"), DefaultPath, OutputDir))
+	{
+		return;
+	}
+
+	TSharedPtr<FJsonObject> Entry;
+	FString FileName;
+	if (ExportSingleAsset(SelectedBlueprint, OutputDir, Entry, FileName) && Entry.IsValid())
+	{
+		TArray<TSharedPtr<FJsonObject>> Entries;
+		Entries.Add(Entry);
+		WriteIndexJson(Entries, FString(), OutputDir);
+		Notify(FText::Format(LOCTEXT("ExportSingleDone", "导出完成：{0}"), FText::FromString(SelectedBlueprint.GetObjectPathString())), false);
+	}
+	else
+	{
+		Notify(LOCTEXT("ExportSingleFailed", "导出失败。"), true);
+	}
 }
 
 bool FBlueprintToJsonExporter::ContentFolderToGamePath(const FString& AbsoluteContentFolder, FString& OutGamePath, FString& OutError)

@@ -45,12 +45,21 @@ public:
 	/** 弹出文件夹选择对话框，用户取消时返回 false。静态方法，无需实例。 */
 	static bool PickFolder(const FText& InTitle, const FString& InDefaultPath, FString& OutPath);
 
+	/** 判断资产是否（或属于）蓝图基类/子类，用于拖放与右键过滤。 */
+	static bool IsAssetClass(const FAssetData& InAsset);
+
 private:
 	/** ToolMenus 启动回调：编辑器就绪后真正挂载菜单项。 */
 	void RegisterMenu();
 
 	/** 菜单点击处理：弹出导出面板窗口。 */
 	void OnExportClicked();
+
+	/** 打开拖入导出面板窗口。 */
+	void OpenDropPanel();
+
+	/** 资产右键菜单处理：导出当前选中的单个蓝图。 */
+	void OnExportSelectedClicked();
 
 	/** 同步批量导出：发现 InGamePath 下的蓝图并逐个写出 JSON。返回导出数量，硬错误返回 -1。 */
 	int32 ExportDirectory(const FString& InGamePath, const FString& InOutputDir);
