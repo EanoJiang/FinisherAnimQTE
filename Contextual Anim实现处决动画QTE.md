@@ -98,7 +98,7 @@ BlendIn设置为Inertialization(带惯性)
 
 新建AnimNotifyBlueprint
 
-![1786504340767](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260812170958242-145233569.png)
+![1786609671056](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260813162755635-402037637.png)
 
 添加函数继承ReceivedNotify接收通知
 
@@ -126,9 +126,9 @@ AnimNotifyBlueprint中的接收函数逻辑如下：
 
 ![1786525352832](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260812171000925-979884728.png)
 
-在AM_Attacker中的Exit阶段添加该AnimNotify
+在AM_Attacker中的Exit阶段的末尾添加该AnimNotify
 
-![1786525525827](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260812171001138-269715418.png)
+![1786609629488](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260813162756095-52989323.png)
 
 ## 交互键
 
@@ -147,3 +147,67 @@ AnimNotifyBlueprint中的接收函数逻辑如下：
 ![1786525929243](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260812171321919-361371259.gif)
 
 # PART 02 QTE处决动画
+
+### WidgetBlueprint UI
+
+![1786592308583](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260813162756355-1220360032.png)
+
+元素
+
+![1786592257923](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260813162756963-1384798732.png)
+
+![1786676677260](image/ContextualAnim实现处决动画QTE/1786676677260.png)
+
+UI动画
+
+![1786592331618](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260813162757173-2034339289.png)
+
+![1786592342145](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260813162757404-1597833602.png)
+
+![1786592353735](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260813162757600-1464418102.png)
+
+![1786676630678](image/ContextualAnim实现处决动画QTE/1786676630678.png)
+
+函数
+
+![1786592406972](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260813162757781-1060853541.png)
+
+![1786592427118](https://img2024.cnblogs.com/blog/3614909/202608/3614909-20260813162758062-4220258.png)
+
+![1786676647923](image/ContextualAnim实现处决动画QTE/1786676647923.png)
+
+## BP_Player
+
+![1786678211709](image/ContextualAnim实现处决动画QTE/1786678211709.png)
+
+### WB_QTE_Setup
+
+![1786677806261](image/ContextualAnim实现处决动画QTE/1786677806261.png)
+
+### QTE_Events
+
+![1786679629724](image/ContextualAnim实现处决动画QTE/1786679629724.png)
+
+#### QTE_Start
+
+![1786678171193](image/ContextualAnim实现处决动画QTE/1786678171193.png)
+
+#### QTE_Update
+
+![1786678406301](image/ContextualAnim实现处决动画QTE/1786678406301.png)
+
+#### QTE_Successed
+
+![1786678557955](image/ContextualAnim实现处决动画QTE/1786678557955.png)
+
+#### QTE_Failed
+
+![1786679618721](image/ContextualAnim实现处决动画QTE/1786679618721.png)
+
+#### Hide_WB_QTE
+
+![1786679656439](image/ContextualAnim实现处决动画QTE/1786679656439.png)
+
+### QTE_Filling
+
+![1786679864785](image/ContextualAnim实现处决动画QTE/1786679864785.png)
